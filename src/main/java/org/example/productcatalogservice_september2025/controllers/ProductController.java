@@ -7,6 +7,7 @@ import org.example.productcatalogservice_september2025.models.Category;
 import org.example.productcatalogservice_september2025.models.Product;
 import org.example.productcatalogservice_september2025.services.IProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
@@ -20,6 +21,7 @@ import java.util.List;
 public class ProductController {
 
     @Autowired
+    //@Qualifier("fakeStoreProductService")
     private IProductService productService;
 
 //    public ProductController(IProductService productService) {
@@ -62,7 +64,9 @@ public class ProductController {
 
     @PostMapping("/products")
     ProductDto createProduct(@RequestBody ProductDto input) {
-        return input;
+        Product inputProduct = from(input);
+        Product responseProduct = productService.createProduct(inputProduct);
+        return from(responseProduct);
     }
 
     private ProductDto from(Product product) {
@@ -92,6 +96,7 @@ public class ProductController {
         product.setDescription(productDto.getDescription());
         if(productDto.getCategoryDto() != null) {
             Category category = new Category();
+            category.setId(productDto.getCategoryDto().getId());
             category.setName(productDto.getCategoryDto().getName());
             product.setCategory(category);
         }
