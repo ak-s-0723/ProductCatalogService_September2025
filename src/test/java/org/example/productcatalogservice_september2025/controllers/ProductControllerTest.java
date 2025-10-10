@@ -4,13 +4,15 @@ import org.example.productcatalogservice_september2025.dtos.ProductDto;
 import org.example.productcatalogservice_september2025.models.Product;
 import org.example.productcatalogservice_september2025.services.IProductService;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.ResponseEntity;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 class ProductControllerTest {
@@ -20,6 +22,9 @@ class ProductControllerTest {
 
     @MockBean
     private IProductService productService;
+
+    @Captor
+    private ArgumentCaptor<Long> idCaptor;
 
     @Test
     public void TestGetProductById_WithValidId_ReturnsProductSuccessfully() {
@@ -42,6 +47,7 @@ class ProductControllerTest {
         assertEquals(productId,productDtoResponseEntity.getBody().getId());
         assertEquals("Iphone",productDtoResponseEntity.getBody().getName());
         assertEquals(100000D,productDtoResponseEntity.getBody().getPrice());
+        verify(productService, times(1)).getProductById(productId);
     }
 
     @Test
@@ -54,6 +60,8 @@ class ProductControllerTest {
                 ()->productController.getProductById(productId));
 
         assertEquals("Illegal Id passed", exception.getMessage());
+
+        verify(productService, times(0)).getProductById(productId);
     }
 
     @Test
@@ -65,6 +73,25 @@ class ProductControllerTest {
 
         //Act and Assert
         assertThrows(RuntimeException.class,()->productController.getProductById(productId));
+    }
+
+    @Test
+    public void TestGetProductById_WhereProductServiceCalledWithSameArguments_RunSuccessfully() {
+        //Arrange
+        Long productId = 2L;
+
+        Product product = new Product();
+        product.setId(productId);
+        product.setName("Iphone");
+        product.setPrice(100000D);
+        when(productService.getProductById(productId)).thenReturn(product);
+
+        //Act
+        productController.getProductById(productId);
+
+        //Assert
+        verify(productService).getProductById(idCaptor.capture());
+        assertEquals(productId,idCaptor.getValue());
     }
 
 }

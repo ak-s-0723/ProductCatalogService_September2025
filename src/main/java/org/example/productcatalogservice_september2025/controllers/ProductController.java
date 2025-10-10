@@ -56,6 +56,7 @@ public class ProductController {
                 throw new IllegalArgumentException("Illegal Id passed");
             }
 
+            //productId++;
             Product product = productService.getProductById(productId);
             if(product == null) {
                 throw new RuntimeException("Something went wrong at our side");
@@ -67,6 +68,7 @@ public class ProductController {
 
     @PostMapping("/products")
     ProductDto createProduct(@RequestBody ProductDto input) {
+        //return input;
         Product inputProduct = from(input);
         Product responseProduct = productService.createProduct(inputProduct);
         return from(responseProduct);
@@ -91,6 +93,7 @@ public class ProductController {
     }
 
     private Product from(ProductDto productDto) {
+        //created_from_function_7:28
         Product product = new Product();
         product.setId(productDto.getId());
         product.setName(productDto.getName());

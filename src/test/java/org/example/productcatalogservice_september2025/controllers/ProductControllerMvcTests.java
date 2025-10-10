@@ -8,15 +8,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ProductController.class)
 public class ProductControllerMvcTests {
@@ -63,6 +65,43 @@ public class ProductControllerMvcTests {
         //Act and Assert
         mockMvc.perform(get("/products"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(body));
+                .andExpect(content().string(body))
+                .andExpect(jsonPath("$[0].name").value("MacBook Pro"))
+                .andExpect(jsonPath("$.length()").value(2));
+    }
+
+    @Test
+    public void TestCreateProduct_RunSuccessfully() throws Exception {
+        //Arrange
+        //anurag_Created_me_in_ut_7:25
+        Product product = new Product();
+        product.setName("Apple Watch");
+        product.setId(10L);
+        product.setPrice(40000D);
+        when(productService.createProduct(any(Product.class))).thenReturn(product);
+
+        ProductDto productDto = new ProductDto();
+        productDto.setPrice(40000D);
+        productDto.setId(10L);
+        productDto.setName("Apple Watch");
+
+        //Act and Assert
+        String dtoInString = objectMapper.writeValueAsString(productDto);
+
+        mockMvc.perform(post("/products")
+                        .content(dtoInString)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string(dtoInString))
+                .andExpect(jsonPath("$.id").value(10L))
+                .andExpect(jsonPath("$.name").value("Apple Watch"));
+
     }
 }
+
+
+//{
+//    "name" : "Apple Watch",
+//        "price" :"40000",
+//        "id" : "10"
+//}
