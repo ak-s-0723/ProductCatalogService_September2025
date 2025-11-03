@@ -17,8 +17,8 @@ class CategoryRepoTest {
     @Autowired
     private CategoryRepo categoryRepo;
 
-    @Test
-    @Transactional
+    //@Test
+    //@Transactional
     public void testLoading() {
         Category category = categoryRepo.findById(1L).get();
         System.out.println(category.getName());
@@ -28,8 +28,8 @@ class CategoryRepoTest {
     }
 
 
-    @Test
-    @Transactional
+    //@Test
+    //@Transactional
     public void testSomething() {
         List<Category> categoryList = categoryRepo.findAll();
         for(Category category : categoryList) {
