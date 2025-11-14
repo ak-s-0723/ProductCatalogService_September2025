@@ -6,6 +6,8 @@ import org.example.productcatalogservice_september2025.models.Category;
 import org.example.productcatalogservice_september2025.models.Product;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.annotation.Primary;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.RequestEntity;
@@ -21,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Primary
 public class FakeStoreProductService implements IProductService {
 
     @Autowired
@@ -28,6 +31,9 @@ public class FakeStoreProductService implements IProductService {
 
     @Autowired
     private FakeStoreApiClient fakeStoreApiClient;
+
+    @Autowired
+    private RedisTemplate<String,Object> redisTemplate;
 
     @Override
     public Product getProductById(Long id) {
@@ -41,12 +47,31 @@ public class FakeStoreProductService implements IProductService {
 //                fakeStoreProductDtoResponseEntity.hasBody()) {
 //            return from(fakeStoreProductDtoResponseEntity.getBody());
 
-        FakeStoreProductDto  fakeStoreProductDto = fakeStoreApiClient.getProductById(id);
-        if(fakeStoreProductDto!=null) {
-            return from(fakeStoreProductDto);
+        //check in cache
+           // if found, return it.
+           // else get by 3rd Party API call
+                 // store in redis
+                 // return it
+
+        FakeStoreProductDto fakeStoreProductDto = null;
+
+        fakeStoreProductDto = (FakeStoreProductDto)
+                redisTemplate.opsForHash().get("fakestoreproducts",id);
+
+        if(fakeStoreProductDto == null) {
+            fakeStoreProductDto = fakeStoreApiClient.getProductById(id);
+            if(fakeStoreProductDto!=null) {
+                redisTemplate.opsForHash().put("fakestoreproducts",id,
+                        fakeStoreProductDto);
+                System.out.println("Found by making call to fakestore");
+            }
+        } else {
+            System.out.println("Found in cache");
         }
 
-        return null;
+        if(fakeStoreProductDto !=null) {
+        return from(fakeStoreProductDto); }
+        else {return null;}
     }
 
     @Override
